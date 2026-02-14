@@ -28,57 +28,68 @@ function zushy() {
         *) echo "Aborted." ;;
     esac
 }
-
 function sysup() {
-# Detect the Package Manager
-# Place this in ~/.zsh/modules/functions.zsh inside the function sysup()
-
-local package_manager=""
-local update_cmd=""
-
-if (( $+commands[apt] )); then
-    package_manager="apt"
-    update_cmd="apt update && apt upgrade -y"
-elif (( $+commands[pacman] )); then
-    package_manager="pacman"
-    update_cmd="pacman -Syu --noconfirm"
-elif (( $+commands[dnf] )); then
-    package_manager="dnf"
-    update_cmd="dnf upgrade --refresh -y"
-elif (( $+commands[apk] )); then
-    package_manager="apk"
-    update_cmd="apk update && apk upgrade"
-elif (( $+commands[xbps-install] )); then
-    package_manager="xbps"
-    update_cmd="xbps-install -Su"
-else
-    echo "❌ Unknown Empire Territory. No package manager found."
-    return 1
-fi
-
-echo "[1] 📦 Updating System via $package_manager..."
-eval $update_cmd
-
     local c_pink="\033[1;35m"
     local c_blue="\033[1;36m"
     local c_reset="\033[0m"
-    local _sudo=""
-    command -v sudo &> /dev/null && _sudo="sudo"
 
-    echo -e "\n${c_blue}[1] 📦 Updating System...${c_reset}"
-    if [ -f /etc/arch-release ]; then
-        $_sudo pacman -Syu --noconfirm
-    elif command -v pkg &> /dev/null && [ ! -f /etc/debian_version ]; then
-        pkg update -y && pkg upgrade -y && pkg autoclean
-    elif command -v apt &> /dev/null; then
-        $_sudo apt update && $_sudo apt full-upgrade -y
+    echo -e "\n${c_pink}╔══════════════════════════════════════╗${c_reset}"
+    echo -e "${c_pink}║      EMPIRE SYSTEM UPGRADE v3.0      ║${c_reset}"
+    echo -e "${c_pink}╚══════════════════════════════════════╝${c_reset}"
+
+    # 1. Permission & Manager Detection
+    local _sudo=""
+    # Only use sudo if we are NOT root and sudo exists (Standard Linux behavior)
+    if [ "$EUID" -ne 0 ] && command -v sudo &> /dev/null; then
+        _sudo="sudo"
     fi
 
-    echo -e "\n${c_blue}[2] 💉 Updating Antidote...${c_reset}"
-    command -v antidote &> /dev/null && antidote update || echo "Antidote missing."
+    local package_manager=""
+    local update_cmd=""
 
+    if (( $+commands[dnf] )); then
+        package_manager="Fedora (dnf)"
+        update_cmd="$_sudo dnf upgrade --refresh -y"
+    elif (( $+commands[pacman] )); then
+        package_manager="Arch (pacman)"
+        update_cmd="$_sudo pacman -Syu --noconfirm"
+    elif [ -n "$TERMUX_VERSION" ]; then
+        package_manager="Termux (pkg)"
+        update_cmd="pkg update -y && pkg upgrade -y && pkg autoclean"
+    elif (( $+commands[apt] )); then
+        package_manager="Debian/Pop!_OS (apt)"
+        update_cmd="$_sudo apt update && $_sudo apt full-upgrade -y"
+    elif (( $+commands[apk] )); then
+        package_manager="Alpine (apk)"
+        update_cmd="apk update && apk upgrade"
+    elif (( $+commands[xbps-install] )); then
+        package_manager="Void (xbps)"
+        update_cmd="$_sudo xbps-install -Su"
+    else
+        echo "❌ Unknown Empire Territory. No known package manager found."
+        return 1
+    fi
+
+    # 2. Execute System Update
+    echo -e "\n${c_blue}[1] 📦 Updating $package_manager...${c_reset}"
+    eval $update_cmd
+
+    # 3. Shell Plugins (Antidote)
+    echo -e "\n${c_blue}[2] 💉 Updating Antidote...${c_reset}"
+    if command -v antidote &> /dev/null; then
+        antidote update
+    else
+        echo "Antidote missing."
+    fi
+
+    # 4. Python Tools (Empire Utilities)
     echo -e "\n${c_blue}[3] 🐍 Updating Python Tools...${c_reset}"
-    pip install -U "yt-dlp[default]" gallery-dl openai --break-system-packages 2>/dev/null
+    if command -v pip &> /dev/null; then
+        pip install -U "yt-dlp[default]" gallery-dl openai --break-system-packages 2>/dev/null
+    else
+        echo "Pip not found. Skipping python tools."
+    fi
+
     echo -e "\n${c_pink}✅ UNIVERSAL SYNC COMPLETE.${c_reset}"
 }
 
