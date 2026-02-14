@@ -28,13 +28,14 @@ function zushy() {
         *) echo "Aborted." ;;
     esac
 }
+
 function sysup() {
     local c_pink="\033[1;35m"
     local c_blue="\033[1;36m"
     local c_reset="\033[0m"
 
     echo -e "\n${c_pink}╔══════════════════════════════════════╗${c_reset}"
-    echo -e "${c_pink}║      EMPIRE SYSTEM UPGRADE v3.0      ║${c_reset}"
+    echo -e "${c_pink}║      EMPIRE SYSTEM UPGRADE v3.1      ║${c_reset}"
     echo -e "${c_pink}╚══════════════════════════════════════╝${c_reset}"
 
     # 1. Permission & Manager Detection
@@ -47,15 +48,17 @@ function sysup() {
     local package_manager=""
     local update_cmd=""
 
-    if (( $+commands[dnf] )); then
+    # --- PRIORITY CHECK: Termux First ---
+    if [ -n "$TERMUX_VERSION" ]; then
+        package_manager="Termux (pkg)"
+        update_cmd="pkg update -y && pkg upgrade -y && pkg autoclean"
+    # --- Secondary Checks: Distros ---
+    elif (( $+commands[dnf] )); then
         package_manager="Fedora (dnf)"
         update_cmd="$_sudo dnf upgrade --refresh -y"
     elif (( $+commands[pacman] )); then
         package_manager="Arch (pacman)"
         update_cmd="$_sudo pacman -Syu --noconfirm"
-    elif [ -n "$TERMUX_VERSION" ]; then
-        package_manager="Termux (pkg)"
-        update_cmd="pkg update -y && pkg upgrade -y && pkg autoclean"
     elif (( $+commands[apt] )); then
         package_manager="Debian/Pop!_OS (apt)"
         update_cmd="$_sudo apt update && $_sudo apt full-upgrade -y"
