@@ -38,3 +38,13 @@ alias empire="ssh vel@vvpop.tail845007.ts.net"
 alias clock="tty-clock -c -C 5"
 alias gayclock="tty-clock -c | lolcat"
 alias rish='$HOME/.rish/rish'
+alias cs="capture-session"
+
+# === Auto-generated for my-api ===
+alias my-api='cd /data/data/com.termux/files/home/projects/my-api'
+alias my-api-logs='tail -f /data/data/com.termux/files/home/projects/my-api/logs/*.log'
+alias my-api-dev='cd /data/data/com.termux/files/home/projects/my-api/src && make dev'
+alias edfu='edit-func'
+alias pxm=pixedia
+alias cleave="~/.local/bin/video_cleaver"
+alias arch="proot-distro login archlinux"
